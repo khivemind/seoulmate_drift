@@ -82,6 +82,8 @@ def get_traffic():
     for s, e in ranges:
         url = f"{BASE_URL}/{SERVICE}/{s}/{e}/"
 
+        print(f"요청 {url}")
+
         response = requests.get(url)
     
         data = response.json()
@@ -109,9 +111,8 @@ def get_traffic():
     
         is_first = False
     
-        del df
+        #del df
 
-        break
 
     # 기간 필터링
     df = pd.read_csv(tmp_file, encoding="utf-8-sig")
