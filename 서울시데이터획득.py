@@ -24,6 +24,7 @@ SERVICE = "tpssPassengerCnt"        # 행정동단위
 file_name = f"data/서울시_행정동_대중교통_승차수_{start_date}_{end_date}.csv"
 tmp_file = f"data/서울시_행정동_대중교통_승차수_{start_date}_{end_date}_tmp.csv"
 
+edm_name = f"data/서울시_행정동ID_행정동코드_맵핑_base.csv"
 
 #BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/json/{SERVICE}"
 BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/json"
@@ -149,11 +150,11 @@ def get_traffic():
     )
 
     # 행정동코드
-    emd_df = pd.read_csv("서울시_행정동ID_행정동코드_맵핑.csv", encoding="utf-8-sig")
+    #emd_df = pd.read_csv(edm_name, encoding="utf-8-sig")
 
     #result_df = pd.merge(result_df, emd_df, on="행정동_ID", how="outer")
 
-    result_df.to_csv("result_"+tmp_file, index=False, encoding="utf-8-sig" )
+    result_df.to_csv(file_name, index=False, encoding="utf-8-sig" )
 
 
 # data 가저오기
