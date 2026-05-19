@@ -17,11 +17,12 @@ SERVICES ={
 }
 
 
-start_date = "202601"
+#start_date = "202004"
 #end_date = "202604"
+start_date = (datetime.today() - relativedelta(months=2)).strftime("%Y%m")      # 오늘 기준 이전달
 end_date = (datetime.today() - relativedelta(months=1)).strftime("%Y%m")      # 오늘 기준 이전달
 
-file_name = f"서울은행_글로발변수_월단위_{start_date}_{end_date}.csv"
+file_name = f"data/서울은행_글로발변수_월단위_{start_date}_{end_date}.csv"
 
 #
 # M2
