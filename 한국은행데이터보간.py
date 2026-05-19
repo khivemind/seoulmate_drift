@@ -6,13 +6,39 @@ from fontTools.misc.cython import returns
 from sklearn.linear_model import RidgeCV, ElasticNet
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
+import numpy as np
 
 start_date = "202004"
 #end_date = "202512"
+middle_date = (datetime.today() - relativedelta(months=2)).strftime("%Y%m")      # 오늘 기준 이전달
 end_date = (datetime.today() - relativedelta(months=1)).strftime("%Y%m")      # 오늘 기준 이전달
 
-file_name = f"서울은행_글로발변수_월단위_{start_date}_{end_date}.csv"
-filled_file_name = f"서울은행_글로발변수_월단위_{start_date}_{end_date}_filled.csv"
+base_file_name = f"data/서울은행_글로발변수_월단위_{start_date}_{middle_date}_base.csv"
+new_file_name = f"data/서울은행_글로발변수_월단위_{middle_date}_{end_date}.csv"
+file_name = f"data/서울은행_글로발변수_월단위_{start_date}_{end_date}.csv"
+filled_file_name = f"data/서울은행_글로발변수_월단위_{start_date}_{end_date}_base.csv"
+
+# base 와 new 합치기
+base_df = pd.read_csv(base_file_name)
+new_df = pd.read_csv(new_file_name)
+
+merged_df = pd.concat(
+    [base_df, new_df],
+    ignore_index=True
+)
+
+merged_df = merged_df.drop_duplicates(
+    subset=["TIME"],
+    keep="first"
+)
+
+# 저장
+merged_df.to_csv(
+    file_name,
+    index=False,
+    encoding="utf-8-sig"
+)
+
 
 # 2. 데이터 가져오기
 global_df = pd.read_csv(file_name, encoding="utf-8-sig")
@@ -118,11 +144,11 @@ kospi_model.fit(X_kospi_train, y_kospi_train)
 kospi_x = last_df.drop("KOSPI", axis=1)
 
 kospi_x["M2"] = kospi_x["M2_lag1"]  # 임시로 lag1 사용
-kospi_pred = kospi_model.predict(kospi_x)
+kospi_pred = np.round(kospi_model.predict(kospi_x),2)
 
 m2_x = last_df.drop("M2", axis=1)
 m2_x["KOSPI"] = kospi_pred[0]
-m2_pred = m2_model.predict(m2_x)
+m2_pred = np.round(m2_model.predict(m2_x),1)
 
 last_df["KOSPI"] = kospi_pred
 last_df["M2"] = m2_pred
