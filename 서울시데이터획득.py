@@ -97,8 +97,8 @@ def get_traffic():
 
         first_item = rows[0]
 
-        if first_item["CRTR_DD"].astype(str).str[:6] < start_date:
-            print(f"item 시간: {first_item['CRTR_DD'].astype(str).str[:6]}  > 시작 시간 : {start_date} 임으로 건너뛰기 ")
+        if first_item["CRTR_DD"][:6] < start_date:
+            print(f"item 시간: {first_item['CRTR_DD'][:6]}  > 시작 시간 : {start_date} 임으로 건너뛰기 ")
             break
 
         df = pd.DataFrame(rows)
