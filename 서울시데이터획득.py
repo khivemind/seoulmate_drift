@@ -7,31 +7,22 @@ import os
 
 API_KEY = "776866746a73796236356c51455047"
 
-start_date = "202601"
+#start_date = "202601"
 #end_date = "202604"
+start_date = (datetime.today() - relativedelta(months=2)).strftime("%Y%m")      # 오늘 기준 이전전달
 end_date = (datetime.today() - relativedelta(months=1)).strftime("%Y%m")      # 오늘 기준 이전달
 
 
-SERVICES = {
-    "VwsmAdstrdSelngW":f"서울시_상권분석_매출_행정동_{start_date}_{end_date}.csv",
-    "VwsmAdstrdAptW":f"서울시_아파트_평균가격_행정동_{start_date}_{end_date}.csv",
-    "tpssPassengerCnt":f"서울시_행정동_대중교통_승차수_{start_date}_{end_date}.csv",
-    "SPOP_LOCAL_RESD_DONG":f"서울시_행정동_생활인구_{start_date}_{end_date}.csv"
-}
+# SERVICES = {
+#     "VwsmAdstrdSelngW":f"서울시_상권분석_매출_행정동_{start_date}_{end_date}.csv",
+#     "VwsmAdstrdAptW":f"서울시_아파트_평균가격_행정동_{start_date}_{end_date}.csv",
+#     "tpssPassengerCnt":f"서울시_행정동_대중교통_승차수_{start_date}_{end_date}.csv",
+#     "SPOP_LOCAL_RESD_DONG":f"서울시_행정동_생활인구_{start_date}_{end_date}.csv"
+# }
 
-#SERVICE = "VwsmAdstrdSelngW"        # 행정동단위
-#file_name = "서울시_상권분석_매출_행정동.csv"
-
-#SERVICE = "VwsmAdstrdAptW"        # 행정동단위
-#file_name = "서울시_아파트_평균가격_행정동.csv"
-
-#SERVICE = "tpssPassengerCnt"        # 행정동단위
-#file_name = "서울시_행정동_대중교통_승차수.csv"
-
-#SERVICE = "SPOP_LOCAL_RESD_DONG"        # 행정동단위
-#file_name = "서울시_행정동_생활인구.csv"
-
-
+SERVICE = "tpssPassengerCnt"        # 행정동단위
+file_name = f"data/서울시_행정동_대중교통_승차수_{start_date}_{end_date}.csv"
+tmp_file = f"data/서울시_행정동_대중교통_승차수_{start_date}_{end_date}_tmp.csv"
 
 
 #BASE_URL = f"http://openapi.seoul.go.kr:8088/{API_KEY}/json/{SERVICE}"
@@ -41,6 +32,8 @@ def get_total_count(service):
     # 전체 갯수 확인
 
     url = f"{BASE_URL}/{service}/1/1/"
+
+    print(f"요청 {url}")
 
     # 요청
     response = requests.get(url)
@@ -62,9 +55,8 @@ def get_total_count(service):
     return total_count
 
 def get_traffic():
-    SERVICE = "tpssPassengerCnt"
-    tmp_file = SERVICES[SERVICE]
-
+#    SERVICE = "tpssPassengerCnt"
+#    tmp_file = SERVICES[SERVICE]
 
     total_count = get_total_count(SERVICE)
     
@@ -98,7 +90,17 @@ def get_traffic():
     
         if not rows:
             continue
-    
+
+
+        # 최신날짜부터 item을 가저온다
+        # 첫 item 날자가 start_date보다 크면 중지
+
+        first_item = rows[0]
+
+        if first_item["CRTR_DD"].astype(str).str[:6] < start_date:
+            print(f"item 시간: {first_item['CRTR_DD'].astype(str).str[:6]}  > 시작 시간 : {start_date} 임으로 건너뛰기 ")
+            break
+
         df = pd.DataFrame(rows)
     
         df.to_csv(
@@ -111,7 +113,7 @@ def get_traffic():
     
         is_first = False
     
-        #del df
+        del df
 
 
     # 기간 필터링
