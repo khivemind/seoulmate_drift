@@ -5,7 +5,7 @@ hostname = "34.81.221.132"
 username = "overlord"
 pem_file = "overlord.pem"
 
-local_file = f"D:\seoulmate\도시활력지수.csv"
+local_file = f"data/도시활력지수.csv"
 remote_file = f"/home/overlord/data/도시활력지수.csv"
 
 # SSH 키 로드
@@ -21,6 +21,8 @@ try:
         username=username,
         pkey=key
     )
+
+    print(f"{hostname} 서버 접속")
 
     # SFTP 시작
     sftp = ssh.open_sftp()
