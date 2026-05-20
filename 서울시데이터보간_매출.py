@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMRegressor
 from sklearn.multioutput import MultiOutputRegressor
+from datetime import datetime
 
 # 다음 분기 코드
 def next_quarter(code):
@@ -16,13 +17,36 @@ def next_quarter(code):
 
     return year * 10 + quarter
 
+# 이전 분기 코드
+def previous_quarter(code):
+    year = code // 10      # 20261 -> 2026
+    quarter = code % 10    # 20261 -> 1
+
+    if quarter == 1:
+        year -= 1
+        quarter = 4
+    else:
+        quarter -= 1
+
+    return year * 10 + quarter
+
+# 지금 분기
+now = datetime.now()
+year = now.year
+quarter = (now.month - 1) // 3 + 1
+
+
+now_season = int(f"{year}{quarter}")
+previous_season = previous_quarter(now_season)
+
 
 # 2. 데이터 가져오기
-sales_file = r"data/서울시_상권분석_매출_행정동_총합_20194_20261_base.csv"
+sales_file = fr"data/서울시_상권분석_매출_행정동_총합_20194_{previous_season}_base.csv"
 
 sales_df = pd.read_csv(sales_file, encoding="utf-8-sig")
 
 
+print(f"{sales_file} 읽기")
 
 # 행정동 공간 피처 합치기
 space_df = pd.read_csv(r"data/서울시_행정동_공간_base.csv", encoding="utf-8-sig")
@@ -38,8 +62,12 @@ print(f"행정동 공간 갯수: {len(sales_df)}")
 
 
 # 3. 마지막 row 삽입
-last_season = sales_df["기준_년분기_코드"].max()
-season = next_quarter(last_season)
+#last_season = sales_df["기준_년분기_코드"].max()
+#season = next_quarter(last_season)
+
+last_season = previous_season
+season = now_season
+
 
 last_df = sales_df[sales_df["기준_년분기_코드"] == last_season].copy()
 
@@ -235,9 +263,9 @@ concat_df = pd.concat(
     ignore_index=True
 )
 
-concat_df.to_csv(rf"data/서울시_상권분석_매출_행정동_총합_20194_{season}_base.csv", index=False, encoding="utf-8-sig")
+concat_df.to_csv(rf"data/서울시_상권분석_매출_행정동_총합_20194_{now_season}_base.csv", index=False, encoding="utf-8-sig")
 
-print(rf"data/서울시_상권분석_매출_행정동_총합_20194_{season}_base.csv 생성")
+print(rf"data/서울시_상권분석_매출_행정동_총합_20194_{now_season}_base.csv 생성")
 
 
 
