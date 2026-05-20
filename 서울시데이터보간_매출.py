@@ -3,6 +3,7 @@ import pandas as pd
 from lightgbm import LGBMRegressor
 from sklearn.multioutput import MultiOutputRegressor
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 # 다음 분기 코드
 def next_quarter(code):
@@ -266,6 +267,139 @@ concat_df = pd.concat(
 concat_df.to_csv(rf"data/서울시_상권분석_매출_행정동_총합_20194_{now_season}_base.csv", index=False, encoding="utf-8-sig")
 
 print(rf"data/서울시_상권분석_매출_행정동_총합_20194_{now_season}_base.csv 생성")
+
+
+#
+# 월단위로 쪼개기
+#
+
+sales_df = concat_df
+
+# interpolate를 통해서 월단위 데이터 전환
+
+# 분기 -> 월 매핑
+quarter_month_map = {
+    "1": "03",
+    "2": "06",
+    "3": "09",
+    "4": "12"
+}
+
+value_cols = [
+    "당월_매출_금액",
+    "당월_매출_건수",
+]
+
+code_cols = [
+    "기준_년분기_코드",
+    "행정동코드"
+]
+
+
+# YYYYQ -> YYYYMM 변환
+sales_df["YYYYMM"] = (
+    sales_df["기준_년분기_코드"]
+    .astype(str)
+    .str[:4]
+    +
+    sales_df["기준_년분기_코드"]
+    .astype(str)
+    .str[-1]
+    .map(quarter_month_map)
+)
+
+result = []
+
+# 행정동별 월 보간
+for code, g in sales_df.groupby("행정동코드"):
+
+    g = g.copy()
+
+    # 날짜 변환
+    g["DATE"] = pd.to_datetime(
+        g["YYYYMM"],
+        format="%Y%m"
+    )
+
+    g = g.sort_values("DATE")
+
+    # index 설정
+    g = g.set_index("DATE")
+
+
+    # 월 단위 확장
+    monthly = g.resample("MS").asfreq()
+
+    # 수치 컬럼 보간
+    monthly[value_cols] = (
+        monthly[value_cols]
+        .interpolate(method="linear")
+    )
+
+    # code 채우기
+    monthly[code_cols] = (
+        monthly[code_cols]
+        .ffill()
+    )
+
+    # 행정동코드 유지
+    monthly["행정동코드"] = code
+
+    # YYYYMM 생성
+    monthly["YYYYMM"] = (
+        monthly.index.strftime("%Y%m")
+    )
+
+    result.append(monthly)
+
+
+# 합치기
+monthly_sales_df = (
+    pd.concat(result)
+    .reset_index(drop=True)
+)
+
+
+monthly_sales_df[value_cols] = (
+    monthly_sales_df[value_cols]
+    .round()
+    .fillna(0)
+    .astype(int)
+
+)
+
+monthly_sales_df[code_cols] = (
+    monthly_sales_df[code_cols]
+    .ffill()
+)
+
+monthly_sales_df = (
+    monthly_sales_df
+    .sort_values(
+        ["YYYYMM", "행정동코드"]
+    )
+    .reset_index(drop=True)
+)
+
+
+previous_date = (datetime.today() - relativedelta(months=1)).strftime("%Y%m")      # 오늘 기준 이전달
+now_date = datetime.today().strftime("%Y%m")
+
+
+monthly_sales_df[[
+    "기준_년분기_코드",
+    "YYYYMM",
+    "행정동코드",
+    "당월_매출_금액",
+    "당월_매출_건수"]].to_csv(
+    rf"data/서울시_행정동_매출_월단위_201910_{previous_date}.csv",
+    index=False,
+    encoding="utf-8-sig")
+
+
+print(f"갯수: {len(monthly_sales_df)}")
+monthly_sales_df.head(2)
+
 
 
 
