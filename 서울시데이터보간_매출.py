@@ -392,7 +392,7 @@ monthly_sales_df[[
     "행정동코드",
     "당월_매출_금액",
     "당월_매출_건수"]].to_csv(
-    rf"data/서울시_행정동_매출_월단위_201910_{previous_date}.csv",
+    rf"data/서울시_행정동_매출_월단위_201910_{previous_date}_base.csv",
     index=False,
     encoding="utf-8-sig")
 
