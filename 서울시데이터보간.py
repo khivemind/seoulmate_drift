@@ -72,6 +72,10 @@ base_df = pd.concat([st_df, merge_df], ignore_index=True)
 
 base_df = base_df.dropna()
 
+base_df = base_df.sort_values(
+    by=["YYYYMM", "행정동코드"]
+)
+
 base_df = base_df.astype({
     "YYYYMM": int,
     "행정동코드": int,
