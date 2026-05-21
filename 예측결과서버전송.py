@@ -37,7 +37,7 @@ username = "overlord"
 pem_file = "overlord.pem"
 
 local_file = f"data/도시활력지수.csv"
-remote_file = f"/home/overlord/data/도시활력지수.csv"
+remote_file = f"/home/overlord/SeoulMate/server/data/expenses_model.csv"
 
 # SSH 키 로드
 key = paramiko.RSAKey.from_private_key_file(pem_file)
