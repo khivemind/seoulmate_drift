@@ -82,7 +82,7 @@ apt_name = rf"data/서울시_행정동_아파트_월단위_202406_{previous_date
 global_name = rf"data/서울은행_글로발변수_월단위_202004_{previous_date}_base.csv"
 people_name = rf"data/서울시_행정동_인구_월단위_202406_{previous_date}_base.csv"
 
-data_name = rf"data/서울시_행정동_생활비용_월단위_202408_{previous_date}.csv"
+data_name = rf"data/생활비용_모델용_월단위_202408_{previous_date}.csv"
 
 #   202408 부터 현재까지 이전달까지 학습용 데이터 생성
 global_df = pd.read_csv(global_name, encoding="utf-8-sig")
@@ -96,6 +96,10 @@ pivot_date = 202408
 # 시공간 + 매출
 st_df = st_df[st_df["YYYYMM"] >= pivot_date]
 sales_df = sales_df[sales_df["YYYYMM"] >= pivot_date]
+
+st_df = st_df.drop_duplicates(subset=["YYYYMM", "행정동코드"])
+sales_df = sales_df.drop_duplicates(subset=["YYYYMM", "행정동코드"])
+
 merge_df = pd.merge(st_df,sales_df, on=["YYYYMM","행정동코드"], how="left")
 merge_df = merge_df.drop(columns=["기준_년분기_코드"])
 
@@ -106,6 +110,7 @@ merge_df.to_csv(rf"data/서울시_행정동_시공간_합치기.csv", encoding="
 
 # + 아파트
 apt_df = apt_df[apt_df["YYYYMM"] >= pivot_date]
+apt_df = apt_df.drop_duplicates(subset=["YYYYMM", "행정동코드"])
 
 merge_df = pd.merge(merge_df, apt_df, on=["YYYYMM","행정동코드"], how="left")
 
@@ -141,6 +146,8 @@ merge_df = pd.merge(merge_df, global_df, on=["YYYYMM"], how="outer")
 # + 인구
 people_df = people_df[people_df["YYYYMM"] >= pivot_date]
 
+people_df = people_df.drop_duplicates(subset=["YYYYMM", "행정동코드"])
+
 people_df["행정동코드"] = people_df["행정동코드"] * 100
 
 merge_df = pd.merge(merge_df, people_df, on=["YYYYMM","행정동코드"], how="outer")
@@ -148,7 +155,7 @@ merge_df = pd.merge(merge_df, people_df, on=["YYYYMM","행정동코드"], how="o
 merge_df.dropna(inplace=True)
 print(merge_df.isnull().sum())
 
-merge_df.to_csv(rf"data/서울시_행정동_총합_데이터.csv", encoding="utf-8-sig", index=False)
+merge_df.to_csv(data_name, encoding="utf-8-sig", index=False)
 
 
 
