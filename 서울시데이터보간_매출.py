@@ -334,6 +334,8 @@ for code, g in sales_df.groupby("행정동코드"):
     monthly[value_cols] = (
         monthly[value_cols]
         .interpolate(method="linear")
+        .clip(lower=0)
+        .astype(int)
     )
 
     # code 채우기
@@ -382,9 +384,50 @@ monthly_sales_df = (
 )
 
 
+
+# 예외처리 일원2동 1168074000 -> 개포3동 1168067500
+monthly_sales_df["행정동코드"] = monthly_sales_df["행정동코드"].replace(
+    1168074000,
+    1168067500
+)
+
+# 예외처리 상일동 1174052000 -> 상일제1동 1174052500, 상일제2동 분리 1174052600
+# 상일동 코드
+old_code = 1174052000
+
+# 분리 대상
+new_codes = [
+    ("상일제1동", 1174052500),
+    ("상일제2동", 1174052600)
+]
+
+# 상일동 데이터 분리
+target = monthly_sales_df[monthly_sales_df["행정동코드"] == old_code]
+
+new_rows = []
+
+for dong_name, dong_code in new_codes:
+    temp = target.copy()
+
+    # 코드 변경
+    temp["행정동코드"] = dong_code
+
+    # 절반 분배
+    temp["당월_매출_금액"] = temp["당월_매출_금액"] / 2
+    temp["당월_매출_건수"] = temp["당월_매출_건수"] / 2
+
+    new_rows.append(temp)
+
+# 기존 상일동 제거
+monthly_sales_df = monthly_sales_df[monthly_sales_df["행정동코드"] != old_code]
+
+# 새 데이터 추가
+monthly_sales_df = pd.concat([monthly_sales_df] + new_rows, ignore_index=True)
+
+
+# 저장
 previous_date = (datetime.today() - relativedelta(months=1)).strftime("%Y%m")      # 오늘 기준 이전달
 now_date = datetime.today().strftime("%Y%m")
-
 
 monthly_sales_df[[
     "기준_년분기_코드",

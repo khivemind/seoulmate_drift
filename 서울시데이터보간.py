@@ -12,7 +12,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 
-start_date = 202001
+start_date = 202406
 middle_date = (datetime.today() - relativedelta(months=2)).strftime("%Y%m")      # 오늘 기준 이전전달
 end_date = (datetime.today() - relativedelta(months=1)).strftime("%Y%m")      # 오늘 기준 이전달
 
@@ -22,6 +22,42 @@ filled_file_name = f"data/서울시_행정동_아파트_월단위_{start_date}_{
 # 아파트
 # 2. 데이터 가져오기
 base_df = pd.read_csv(base_file_name, encoding="utf-8-sig")
+
+# 예외처리 일원2동 1168074000 -> 개포3동 1168067500
+base_df["행정동코드"] = base_df["행정동코드"].replace(
+    11680740,
+    11680675
+)
+
+# 예외처리 상일동 1174052000 -> 상일제1동 1174052500, 상일제2동 분리 1174052600
+# 상일동 코드
+old_code = 11740520
+
+# 분리 대상
+new_codes = [
+    ("상일제1동", 11740525),
+    ("상일제2동", 11740526)
+]
+
+# 상일동 데이터 분리
+target = base_df[base_df["행정동코드"] == old_code]
+
+new_rows = []
+
+for dong_name, dong_code in new_codes:
+    temp = target.copy()
+
+    # 코드 변경
+    temp["행정동코드"] = dong_code
+    new_rows.append(temp)
+
+# 기존 상일동 제거
+base_df = base_df[base_df["행정동코드"] != old_code]
+
+# 새 데이터 추가
+base_df = pd.concat([base_df] + new_rows, ignore_index=True)
+
+base_df.sort_values(["YYYYMM","행정동코드"])
 
 last_df = base_df[base_df["YYYYMM"] == int(middle_date)].copy()
 
