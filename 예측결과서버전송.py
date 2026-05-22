@@ -8,6 +8,10 @@ import chardet
 edm_mapping_df = pd.read_csv(rf"data/서울시_행정동ID_행정동코드_맵핑_base.csv", encoding="utf-8-sig")
 data_df = pd.read_csv(rf"data/생활비용지수_score.csv", encoding="utf-8-sig")
 
+data_df["생활비용지수"] = (
+    ((data_df["생활비용지수"] - 6) / 6) * 100 + 2
+).round(1)
+
 data_df["생활비용지수_등급"] = pd.cut(
     data_df["생활비용지수"],
     bins=5,              # min~max 자동 5등분
@@ -15,9 +19,7 @@ data_df["생활비용지수_등급"] = pd.cut(
     include_lowest=True
 )
 
-data_df["생활비용지수"] = (
-    ((data_df["생활비용지수"] - 6) / 6) * 100
-).round(2)
+
 
 data_df['년도']     = data_df['YYYYMM'] // 100
 data_df['월']    = data_df['YYYYMM'] %  100
