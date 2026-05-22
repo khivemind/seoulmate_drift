@@ -86,11 +86,13 @@ model = LGBMRegressor(
     objective="regression",
     n_estimators=3000,  # 트리개수
     learning_rate=0.03,  # 학습률
+    min_data_in_leaf=5,
     max_depth=-1,        # 트리 최대 깊이  (-1 제한없음)
     num_leaves=31,       # leaf 개수
     subsample=1.0,       # 데이터 샘플링 비율 (과적합 방지)
     colsample_bytree=0.9, # feature 샘플링 비율 (과적합 방지)
-    random_state=42
+    random_state=42,
+    max_bin=512
 )
 
 model.fit(
@@ -141,9 +143,9 @@ print(f"feature importances : {X_train.columns[indices]}")
 # 예측 수행
 test_pred = model.predict(X_test)
 
-print(f"\n [이번달 {now_date} 예측 결과]")
-for i, pred in enumerate(test_pred):
-    print(f"{X_test.iloc[i]['행정동코드']}번째 생활비용지수: {pred:.4f}")
+# print(f"\n [이번달 {now_date} 예측 결과]")
+# for i, pred in enumerate(test_pred):
+#     print(f"{X_test.iloc[i]['행정동코드']}번째 생활비용지수: {pred:.4f}")
 
 X_test["생활비용지수"] = test_pred
 
@@ -158,6 +160,8 @@ data_df = pd.concat([data_df, this_month_df])
 data_df = data_df[["YYYYMM","행정동코드","생활비용지수"]]
 
 data_df.to_csv(rf"data/생활비용지수_score.csv", encoding="utf-8-sig", index=False)
+
+print(f"이번달 예측 포함한 data/생활비용지수_score.csv 저장")
 
 
 
