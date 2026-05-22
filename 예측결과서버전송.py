@@ -15,6 +15,10 @@ data_df["생활비용지수_등급"] = pd.cut(
     include_lowest=True
 )
 
+data_df["생활비용지수"] = (
+    ((data_df["생활비용지수"] - 6) / 6) * 100
+).round(2)
+
 data_df['년도']     = data_df['YYYYMM'] // 100
 data_df['월']    = data_df['YYYYMM'] %  100
 
